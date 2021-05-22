@@ -8,7 +8,7 @@
     在我们编写多线程代码时，我们可能会有这样的需求：
     我们希望线程A控制线程B代码的执行逻辑，即，我们在线程A中对一个标识位进行修改，如果标识位为true，则线程B就循环执行某段程序，否则线程B退出执行逻辑。
     我们来看一下这样一段代码，如图1所示：
-   ![image](https://raw.githubusercontent.com/river-and-boat/jmm/main/Demo.jpg)
+   ![图1.Problem demo](https://raw.githubusercontent.com/river-and-boat/jmm/main/Demo.jpg)
     我们希望当线程A修改flag变量为true以后，线程B可以退出while循环并打印"End B"，但实际情况是线程B无法退出while循环。
     当在变量flag前加上volatile关键字后，可以满足我们的需求。
 
@@ -52,7 +52,7 @@
     8. unlock(解锁)：将主内存共享变量解锁，解锁后其他线程可以锁定该变量并进行赋值操作。
 
     那么，现在我们针对文章开始抛出的问题，将以上原子操作进行相应的代入，可以得到如图4所示的JMM内存模型。
-   ![图4. JMM原子操作] (JMM原子操作.png)
+   ![图4. JMM原子操作](https://github.com/river-and-boat/jmm/blob/main/JMM%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C.png)
 
     由图4我们可以更清楚地了解到问题所在。
     线程B从共享内存中[read]到flag的值后，将其[load]到工作内存中。线程B的执行殷勤通过[use]操作从工作内存使用flag的值。
