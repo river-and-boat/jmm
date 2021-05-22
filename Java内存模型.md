@@ -8,7 +8,7 @@
     在我们编写多线程代码时，我们可能会有这样的需求：
     我们希望线程A控制线程B代码的执行逻辑，即，我们在线程A中对一个标识位进行修改，如果标识位为true，则线程B就循环执行某段程序，否则线程B退出执行逻辑。
     我们来看一下这样一段代码，如图1所示：
-    ![图1.demo代码](Demo.jpg)
+    ![图1.demo代码](https://github.com/river-and-boat/jmm/blob/main/Demo.jpg)
     我们希望当线程A修改flag变量为true以后，线程B可以退出while循环并打印"End B"，但实际情况是线程B无法退出while循环。
     当在变量flag前加上volatile关键字后，可以满足我们的需求。
 
@@ -19,12 +19,12 @@
     一开始，CPU是和我们主内存直接交互的。但是由于CPU的运算速度远大于内存的读写速度，这样会使CPU花费很长的时间等待数据从内存加载或将数据写入内存。
     于是，我们在CPU中为每个核都增加了自己的工作内存。
     有了CPU工作内存，我们就可以适配CPU的运算速度，减少处理器访问内存所需的时延和CPU的等待时间，提高CPU的利用率。多核并发下CPU的缓存架构如图2所示。
-    ![图2.多核并发缓存架构](./多核并发缓存架构.png)
+    ![图2.多核并发缓存架构](https://github.com/river-and-boat/jmm/blob/main/%E5%A4%9A%E6%A0%B8%E5%B9%B6%E5%8F%91%E7%BC%93%E5%AD%98%E6%9E%B6%E6%9E%84.png)
     如图1所示，当CPU从主内存读取数据时，数据会被存储到其对应的CPU工作内存中，之后对数据的访问均从CPU工作内存中读取，当CPU对数据修改时，也将数据先写入工作内存，再由工作内存将数据写入主内存中。
 
 ### 2. JAVA内存模型
     在JAVA中，模仿上述CPU的缓存模型，也建立了相应的JAVA内存模型(JAVA Memory Model, JMM)，其工作原理如图3所示。
-    ![图3.JAVA内存模型JMM](JMM内存模型.png)
+    ![图3.JAVA内存模型JMM](https://github.com/river-and-boat/jmm/blob/main/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.md)
     由图3可知，JMM针对JAVA线程之间的通信进行控制。
     JMM定义了线程与主内存之间的抽象关系，即：线程之间共享的变量存储在主内存中(也叫共享变量)。同时，每个线程都有一个工作内存，仅自己可以访问，其中存储了共享变量副本。
     明白了JAVA内存模型，我们就可以大概理解前述问题是怎么产生的了：
@@ -52,7 +52,7 @@
     8. unlock(解锁)：将主内存共享变量解锁，解锁后其他线程可以锁定该变量并进行赋值操作。
 
     那么，现在我们针对文章开始抛出的问题，将以上原子操作进行相应的代入，可以得到如图4所示的JMM内存模型。
-    ![图4. JMM原子操作](JMM原子操作.png)
+    ![图4. JMM原子操作](https://github.com/river-and-boat/jmm/blob/main/JMM%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C.png)
 
     由图4我们可以更清楚地了解到问题所在。
     线程B从共享内存中[read]到flag的值后，将其[load]到工作内存中。线程B的执行殷勤通过[use]操作从工作内存使用flag的值。
@@ -66,16 +66,16 @@
     那么volatile是如何解决上述问题的呢，为什么在flag变量前用volatile进行修饰，就可以解决以上问题呢，下面我们来一探究竟。
     我们都知道，任何高级语言，其底层都会转换为汇编语言进行执行，那么，我们先来看一下我们在变量前不加volatile关键字与加上后，它的汇编代码有什么变化。
     图5(1)所示为不加volatile关键字生成的汇编代码，可以看到方法executeThreadA()的25行正好是我们flag=true的赋值操作；
-    ![图5(1) 不加volatile的汇编代码](不加volatile的汇编代码.png)
+    ![图5(1) 不加volatile的汇编代码](https://github.com/river-and-boat/jmm/blob/main/%E4%B8%8D%E5%8A%A0volatile%E7%9A%84%E6%B1%87%E7%BC%96%E4%BB%A3%E7%A0%81.png)
     图5(2)所示为加上volatile关键字后生成的汇编代码。
-    ![图5(2) 加上volatile的汇编代码](加上volatile的汇编代码.png)
+    ![图5(2) 加上volatile的汇编代码](https://github.com/river-and-boat/jmm/blob/main/%E5%8A%A0%E4%B8%8Avolatile%E7%9A%84%E6%B1%87%E7%BC%96%E4%BB%A3%E7%A0%81.png)
     可以看到明显的区别是，加上volatile关键字后，在进行变量赋值操作时，指令增加了lock前缀。
     查略汇编相关手册(intel 64-ia-32-architectures-software-developer-instruction-set-reference-manual)对lock指令的解释，可以知道该lock前缀的作用：
     1. 当前CPU工作内存中的相应数据会被立即写回到主内存；
     2. 步骤1中写回主内存的操作会引起其他CPU里缓存了该内存地址的数据无效(MESI协议 https://www.cnblogs.com/yanlong300/p/8986041.html)
 
     现在我们可以很好的利用volatile关键字解决多核环境下数据可见性问题。现在我们补充图4中的相应步骤，更详细的展示在有volatile关键字时，JMM如何工作，如图6所示。
-    ![图6. volatile关键字修饰的JMM](volatile关键字修饰的JMM.png)
+    ![图6. volatile关键字修饰的JMM](https://github.com/river-and-boat/jmm/blob/main/volatile%E5%85%B3%E9%94%AE%E5%AD%97%E4%BF%AE%E9%A5%B0%E7%9A%84JMM.png)
     如图6所示，当在变量flag上增加volatile关键字时，线程A对flag进行修改后，会立即调用store和write操作，将数据写回主线程。
     同时，线程A会通过总线告诉其他线程，flag被我更新了。
     其他线程会通过CPU总线嗅探机制对总线进行监听，当收到来自总线的广播后，会去检查自己的工作内存中是否存在对应的变量，如果存在，则会将该变量置为无效。
@@ -84,7 +84,7 @@
 ### 5. volatile能否保证原子性
     前述内容我们探讨了volatile如何保证了数据的可见性，最后我们来看一下，volatile能否保证原子性。
     我们先来看一段原子性demo，如图7所示。
-    ![图7. volatile原子性demo](volatile原子性demo.jpg)
+    ![图7. volatile原子性demo](https://github.com/river-and-boat/jmm/blob/main/volatile%E5%8E%9F%E5%AD%90%E6%80%A7demo.jpg)
     由图7可知，我们首先定义了共享变量count，并将其用volatile修饰。然后定义了10个线程，每个线程中都执行1000次循环，对count进行递增，我们希望得到的结果是10000，但多次运行后发现，结果总是小于等于10000的，如果对increate方法增加synchronized关键字修饰，或者直接使用JAVA自带的AtomicInteger原子类，则运行结果总是等于10000，这说明volatile并不能保证原子性。
 
 #### 原因分析：
