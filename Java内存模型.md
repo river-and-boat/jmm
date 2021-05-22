@@ -8,7 +8,7 @@
     在我们编写多线程代码时，我们可能会有这样的需求：
     我们希望线程A控制线程B代码的执行逻辑，即，我们在线程A中对一个标识位进行修改，如果标识位为true，则线程B就循环执行某段程序，否则线程B退出执行逻辑。
     我们来看一下这样一段代码，如图1所示：
-    ![problem demo](https://raw.githubusercontent.com/river-and-boat/jmm/main/Demo.jpg)
+    ![problem demo] (https://raw.githubusercontent.com/river-and-boat/jmm/main/Demo.jpg)
     我们希望当线程A修改flag变量为true以后，线程B可以退出while循环并打印"End B"，但实际情况是线程B无法退出while循环。
     当在变量flag前加上volatile关键字后，可以满足我们的需求。
 
