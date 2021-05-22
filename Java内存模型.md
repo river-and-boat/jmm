@@ -24,7 +24,7 @@
 
 ### 2. JAVA内存模型
     在JAVA中，模仿上述CPU的缓存模型，也建立了相应的JAVA内存模型(JAVA Memory Model, JMM)，其工作原理如图3所示。
-   ![图3.JAVA内存模型JMM](https://github.com/river-and-boat/jmm/blob/main/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.md)
+   ![图3.JAVA内存模型JMM](https://github.com/river-and-boat/jmm/blob/main/JMM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.png)
     由图3可知，JMM针对JAVA线程之间的通信进行控制。
     JMM定义了线程与主内存之间的抽象关系，即：线程之间共享的变量存储在主内存中(也叫共享变量)。同时，每个线程都有一个工作内存，仅自己可以访问，其中存储了共享变量副本。
     明白了JAVA内存模型，我们就可以大概理解前述问题是怎么产生的了：
